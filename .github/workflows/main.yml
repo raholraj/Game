@@ -16,19 +16,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── 1.5. Unzip ZIP File & Auto-Fix Path ───────────────────────────────────
+      # ── 1.5. Unzip ZIP File & Auto-Fix Path (Fixed Error) ─────────────────────
       - name: Unzip and Fix Project Path
         run: |
           unzip -o GameGuardian.zip
           rm GameGuardian.zip
           
-          # Find the exact folder containing the Gradle project and move it to root
+          # Find the exact folder containing the Gradle project
           DIR=$(dirname $(find . -name "settings.gradle*" | head -n 1))
           if [ "$DIR" != "." ] && [ ! -z "$DIR" ]; then
-            echo "Gradle project found in $DIR. Moving files to root..."
-            shopt -s dotglob
-            mv "$DIR"/* .
-            shopt -u dotglob
+            echo "Gradle project found in $DIR. Copying files to root..."
+            # Using rsync to safely merge directories without "not empty" errors
+            rsync -a "$DIR"/ ./
           else
             echo "Already in root directory or no Gradle project found."
           fi
