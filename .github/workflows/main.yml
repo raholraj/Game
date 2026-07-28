@@ -16,11 +16,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── 1.5. Unzip ZIP File ─────────────────────────────────────────────────
-      - name: Unzip project files
+      # ── 1.5. Unzip ZIP File & Auto-Fix Path ───────────────────────────────────
+      - name: Unzip and Fix Project Path
         run: |
-          unzip -o GameGuardian.zip -d .
+          unzip -o GameGuardian.zip
           rm GameGuardian.zip
+          
+          # Find the exact folder containing the Gradle project and move it to root
+          DIR=$(dirname $(find . -name "settings.gradle*" | head -n 1))
+          if [ "$DIR" != "." ] && [ ! -z "$DIR" ]; then
+            echo "Gradle project found in $DIR. Moving files to root..."
+            shopt -s dotglob
+            mv "$DIR"/* .
+            shopt -u dotglob
+          else
+            echo "Already in root directory or no Gradle project found."
+          fi
 
       # ── 2. Java 17 setup ──────────────────────────────────────────────────────
       - name: Set up JDK 17
